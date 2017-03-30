@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body onload="init();">
+<h1></h1>
+
+<p>
+  <button onclick="startWebcam();">Start WebCam</button>
+  <button onclick="stopWebcam();">Stop WebCam</button>
+</p>
+<video onclick="snapshot(this);" width=400 height=400 id="video" controls autoplay></video>
+<p>
+
+  Screenshots : <p>
+  <canvas  id="myCanvas" width="400" height="350"></canvas>
+<ul id="messages"></ul>
+<input type="text" id="myMessage">
+<button id="sendbutton">Send</button>
+</body>
+<script type="text/javascript">
+
+
+
+
+  //--------------------
+  // GET USER MEDIA CODE
+  //--------------------
+  navigator.getUserMedia = ( navigator.getUserMedia ||
+  navigator.webkitGetUserMedia ||
+  navigator.mozGetUserMedia ||
+  navigator.msGetUserMedia);
+
+  var video;
+  var webcamStream;
+
+  function startWebcam() {
+    if (navigator.getUserMedia) {
+      navigator.getUserMedia (
+
+        // constraints
+        {
+          video: true,
+          audio: false
+        },
+
+        // successCallback
+        function(localMediaStream) {
+          video = document.querySelector('video');
+          video.src = window.URL.createObjectURL(localMediaStream);
+          webcamStream = localMediaStream;
+        },
+
+        // errorCallback
+        function(err) {
+          console.log("The following error occured: " + err);
+        }
+      );
+    } else {
+      console.log("getUserMedia not supported");
+    }
+  }
+
+  function stopWebcam() {
+    webcamStream.stop();
+  }
+  //---------------------
+  // TAKE A SNAPSHOT CODE
+  //---------------------
+  var canvas, ctx;
+
+  function init() {
+    // Get the canvas and obtain a context for
+    // drawing in it
+    canvas = document.getElementById('myCanvas');
+    ctx = canvas.getContext('2d');
+  }
+
+
+
+  namespace = '/test';
+  // Connect to the Socket.IO server.
+  // The connection URL has the following format:
+  //     http[s]://<domain>:<port>[/<namespace>]
+  var socket = io.connect('http://127.0.0.1:8080');
+  timer = setInterval(
+    function snapshot() {
+      // Draws current image from the video element into the canvas
+      ctx.drawImage(video, 0,0, canvas.width, canvas.height);
+      var frame = canvas.toDataURL("image/png");
+      console.log(frame.substring(0, 50));
+      socket.emit('frame', frame);
+    }, 10000);
+
+  // Event handler for new connections.
+  // The callback function is invoked when a connection with the
+  // server is established.
+
+  socket.on('frame', function(data) {
+    socket.emit('frame', frame);
+  });
+
+  socket.on('connect', function() {
+    socket.send('User has connected!');
+  });
+
+
+  socket.on('message', function(msg) {
+    $("#messages").append('<li>'+msg+'</li>');
+  });
+
+  $('#sendbutton').on('click', function() {
+    socket.send($('#myMessage').val());
+    $('#myMessage').val('');
+  });
+
+
+</script>
+</html>

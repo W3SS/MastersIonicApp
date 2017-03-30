@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html ng-app="ionicApp">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+    <meta http-equiv="Content-Security-Policy" content="default-src *; script-src 'self' 'unsafe-inline' 'unsafe-eval' *; style-src  'self' 'unsafe-inline' *">
+    <title></title>
+
+    <link rel="manifest" href="manifest.json">
+
+    <link href="lib/ionic/css/ionic.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+
+    <!-- ionic/angularjs js -->
+    <script src="lib/ionic/js/ionic.bundle.js"></script>
+    <script src="https://rawgit.com/jan-ivar/adapter-bundle/master/adapter-latest.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://github.com/durated/angular-scroll/blob/master/angular-scroll.js"></script>
+
+    <!-- cordova script (this will be a 404 during development) -->
+    <script src="cordova.js"></script>
+    <!-- your app's js -->
+    <script src="js/app.js"></script>
+  </head>
+  <body onload="init();" ng-controller="AppCtrl">
+  <canvas  id="myCanvas" width="400" height="350"></canvas>
+
+
+  <!-- The nav bar that will be updated as we navigate -->
+ <!-- <ion-nav-bar class="bar-positive">
+    <ion-nav-back-button class="button-clear">
+      <i class="ion-arrow-left-c"></i> Back
+    </ion-nav-back-button>
+  </ion-nav-bar>
+-->
+
+  <ion-nav-bar class="bar-positive">
+    <ion-nav-back-button class="button-icon ion-arrow-left-c">
+    </ion-nav-back-button>
+  </ion-nav-bar>
+
+
+<!--
+  <script id="list.html" type="text/ng-template">
+    <ion-view view-title="Lectures">
+      <ion-content class="padding">
+        <h1 style="text-align: center;">Lectures</h1><br/>
+        </a><br/><br/>
+        <button class="button button-outline button-block button-positive" ng-click="changePage()">
+          Open Camera
+        </button>
+      </ion-content>
+    </ion-view>
+  </script>
+
+
+  <script id="camera.html" type="text/ng-template">
+    <ion-view view-title="Camera" ng-init="init();">
+      <ion-content class="padding">
+        <h1></h1>
+        <div class="modal transparent fullscreen-player">
+        <video onclick="startWebcam();" class="centreme" controls autoplay></video>
+        </div>
+        <button onclick="stopWebcam();">Stop WebCam</button>
+      </ion-content>
+    </ion-view>
+  </script>
+-->
+
+  <ion-nav-view animation="slide-up"></ion-nav-view>
+
+  <script id="templates/tabs.html" type="text/ng-template">
+    <ion-view >
+      <ion-tabs class="tabs-striped tabs-color-positive tabs-top">
+        <ion-tab icon-on="ion-ios-home" icon-off="ion-ios-home-outline">
+          <ion-nav-view name="home-tab">
+          </ion-nav-view>
+        </ion-tab>
+        <ion-tab icon-on="ion-ios-camera" icon-off="ion-ios-camera-outline" ui-sref="tabs.camera">
+          <ion-nav-view name="camera-tab">
+          </ion-nav-view>
+        </ion-tab>
+        <ion-tab icon-on="ion-ios-gear" icon-off="ion-ios-gear-outline" ui-sref="tabs.setting">
+          <ion-nav-view name="setting-tab">
+          </ion-nav-view>
+        </ion-tab>
+      </ion-tabs>
+    </ion-view>
+  </script>
+
+  <script id="templates/home.html" type="text/ng-template">
+    <ion-view title="Home" class="background" hide-nav-bar="true">
+      <ion-content class="center">
+        <div ng-show="!myVar">
+        <div class="card">
+          <div class="item item-avatar">
+            <img src="img/logo.png">
+            <h1>Welcome!</h1>
+          </div>
+          <div class="item item-body">
+            <img class="full-image" src="img/icon.png">
+            <h2>Click the Camera icon to begin!</h2>
+            <a class="button button-block button-energized" ng-click="changePage()" align="bottom">
+              Open Camera
+            </a>
+          </div>
+        </div>
+        </div>
+          <div class="modal transparent fullscreen-player" ng-show="myVar">
+            <video onclick="snapshot(this);" class="centreme" controls autoplay></video>
+            <div class="player-buttons">
+              <a class="button button-outline icon-right ion-power button-assertive" ng-click="stopSnapshot()">Stop Camera</a>
+            </div>
+          </div><br/><br/>
+      </ion-content>
+    </ion-view>
+  </script>
+
+  <script id="templates/camera.html" type="text/ng-template">
+    <ion-view title="Camera" class="background"  hide-nav-bar="true">
+      <ion-content class="centre">
+        <h1></h1>
+        <div class = "card">
+          <canvas id="resultCanvas"></canvas>
+          <a class="button button-block button-energized" ng-click="clearCanvas()" align="bottom">
+            Clear Canvas
+          </a>
+        </div><br/><br/>
+      </ion-content>
+    </ion-view>
+  </script>
+
+  <script id="templates/setting.html" type="text/ng-template">
+    <ion-view  class="background" hide-nav-bar="true">
+      <ion-content class="center">
+        <div class="card">
+          <br/><br/>
+          <h1 style="text-align: center;">Useful Links</h1><br/>
+        </div>
+        <div class="card">
+          <a class="item item-icon-left" href="#" onclick="window.open('https://www.ait.ie/', '_system', 'location=yes'); return false;">
+            <i class="icon ion-compass"></i>
+            AIT Website
+          </a>
+          <a class="item item-icon-left" href="#" onclick="window.open('https://elearning.ait.ie/login/index.php', '_system', 'location=yes'); return false;">
+            <i class="icon ion-clipboard"></i>Moodle
+
+          </a>
+          <a class="item item-icon-left" href="#" onclick="window.open('http://libmain.ait.ie/', '_system', 'location=yes'); return false;">
+            <i class="icon ion-mic-a"></i>
+            AIT Library
+            <span class="item-note">
+    </span>
+          </a>
+        </div>
+      </ion-content>
+    </ion-view>
+  </script>
+
+  <script id="templates/modal.html" type="text/ng-template">
+    <ion-modal-view>
+      <ion-header-bar class="bar bar-header bar-positive">
+        <h1 class="title">New Contact</h1>
+        <button class="button button-clear button-primary" ng-click="modal.hide()">Cancel</button>
+      </ion-header-bar>
+      <ion-content class="padding">
+        <div class="list">
+          <label class="item item-input">
+            <span class="input-label">First Name</span>
+            <input ng-model="newUser.firstName" type="text">
+          </label>
+          <label class="item item-input">
+            <span class="input-label">Last Name</span>
+            <input ng-model="newUser.lastName" type="text">
+          </label>
+          <label class="item item-input">
+            <span class="input-label">Email</span>
+            <input ng-model="newUser.email" type="text">
+          </label>
+          <button class="button button-full button-positive" ng-click="createContact(newUser)">Create</button>
+        </div>
+      </ion-content>
+    </ion-modal-view>
+  </script>
+
+  </body>
+</html>
